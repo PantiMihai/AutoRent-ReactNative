@@ -14,17 +14,10 @@ import CarCard from './components/CarCard';
 import CarImageDemo from './components/CarImageDemo';
 import LoadingSpinner from './components/LoadingSpinner';
 import CatalogueScreen from './screens/CatalogueScreen';
+import HomeScreen from './screens/HomeScreen';
 import BottomNavigation from './components/BottomNavigation';
 
 // Placeholder screens for other tabs
-const HomeScreen = () => (
-  <View style={styles.placeholderScreen}>
-    <Text style={styles.placeholderTitle}>🏠 Home</Text>
-    <Text style={styles.placeholderText}>Welcome to AutoRent!</Text>
-    <Text style={styles.placeholderSubtext}>Find your perfect car rental</Text>
-  </View>
-);
-
 const FavouritesScreen = () => (
   <View style={styles.placeholderScreen}>
     <Text style={styles.placeholderTitle}>❤️ Favourites</Text>
@@ -42,149 +35,25 @@ const ProfileScreen = () => (
 );
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('catalog'); // Start with catalog as shown in Figma
+  const [activeTab, setActiveTab] = useState('home'); // Start with home screen
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [showDemo, setShowDemo] = useState(false);
 
-  // Keep the original demo functionality for the Home tab
-  useEffect(() => {
-    if (activeTab === 'home') {
-      loadCars();
-    }
-  }, [activeTab]);
-
-  const loadCars = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log('Testing API connection...');
-      const testResult = await APIController.testAPIConnection();
-      
-      if (testResult) {
-        console.log('API connection successful, fetching random cars...');
-        const carData = await APIController.fetchRandomCars(3);
-        console.log('Received car data:', carData);
-        setCars(carData);
-      } else {
-        throw new Error('API connection test failed');
-      }
-    } catch (error) {
-      console.error('Failed to load cars:', error);
-      setError(error.message);
-      Alert.alert(
-        'Error', 
-        `Failed to load car data: ${error.message}\n\nThis might be due to API key issues or rate limits. Please check the console for more details.`
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const refreshCars = async () => {
-    try {
-      setRefreshing(true);
-      setError(null);
-      const carData = await APIController.fetchRandomCars(3);
-      setCars(carData);
-    } catch (error) {
-      console.error('Failed to refresh cars:', error);
-      setError(error.message);
-      Alert.alert(
-        'Error', 
-        `Failed to refresh car data: ${error.message}`
-      );
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
   const handleTabPress = (tabKey) => {
     setActiveTab(tabKey);
   };
 
-  const renderCarItem = ({ item }) => <CarCard car={item} />;
+  const handleNavigate = (screen) => {
+    setActiveTab(screen);
+  };
 
   const renderScreen = () => {
     switch (activeTab) {
       case 'home':
-        return (
-          <View style={styles.homeContainer}>
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>AutoRent</Text>
-              <Text style={styles.headerSubtitle}>
-                {showDemo ? 'Image Customization Demo' : 'Discover Amazing Cars'}
-              </Text>
-            </View>
-
-            <View style={styles.content}>
-              <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.refreshButton} onPress={refreshCars}>
-                  <Text style={styles.refreshButtonText}>
-                    {refreshing ? 'Loading...' : 'Load New Cars'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={[styles.demoButton, showDemo && styles.demoButtonActive]} 
-                  onPress={() => setShowDemo(!showDemo)}
-                >
-                  <Text style={[styles.demoButtonText, showDemo && styles.demoButtonTextActive]}>
-                    {showDemo ? 'Show Gallery' : 'Show Demo'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {error && (
-                <View style={styles.errorContainer}>
-                  <Text style={styles.errorText}>Error: {error}</Text>
-                  <TouchableOpacity style={styles.debugButton} onPress={() => {
-                    console.log('Current state - Cars:', cars.length, 'Error:', error);
-                    Alert.alert('Debug Info', `Cars loaded: ${cars.length}\nError: ${error || 'None'}`);
-                  }}>
-                    <Text style={styles.debugButtonText}>Show Debug Info</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {loading ? (
-                <LoadingSpinner message="Loading AutoRent cars..." />
-              ) : cars.length > 0 ? (
-                showDemo ? (
-                  <FlatList
-                    data={cars.slice(0, 1)}
-                    renderItem={({ item }) => <CarImageDemo car={item} />}
-                    keyExtractor={(item, index) => `demo-${item.make}-${item.model}-${index}`}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.listContainer}
-                  />
-                ) : (
-                  <FlatList
-                    data={cars}
-                    renderItem={renderCarItem}
-                    keyExtractor={(item, index) => `${item.make}-${item.model}-${index}`}
-                    showsVerticalScrollIndicator={false}
-                    refreshing={refreshing}
-                    onRefresh={refreshCars}
-                    contentContainerStyle={styles.listContainer}
-                  />
-                )
-              ) : (
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>
-                    {error ? 'Failed to load cars' : 'No cars found'}
-                  </Text>
-                  <TouchableOpacity style={styles.retryButton} onPress={loadCars}>
-                    <Text style={styles.retryButtonText}>Try Again</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          </View>
-        );
+        return <HomeScreen onNavigate={handleNavigate} />;
       
       case 'catalog':
         return <CatalogueScreen />;
@@ -196,7 +65,7 @@ export default function App() {
         return <ProfileScreen />;
       
       default:
-        return <HomeScreen />;
+        return <HomeScreen onNavigate={handleNavigate} />;
     }
   };
 

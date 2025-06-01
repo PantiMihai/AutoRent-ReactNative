@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,15 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { generateCarImageUrl } from '../services/ImageService';
+import { RecentlyViewedUtil } from '../utils/RecentlyViewedUtil';
 
 const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite }) => {
   if (!car) return null;
+
+  // Add car to recently viewed when component mounts
+  useEffect(() => {
+    RecentlyViewedUtil.addToRecentlyViewed(car);
+  }, [car]);
 
   // Generate rating based on car properties (simulated)
   const generateRating = (car) => {
