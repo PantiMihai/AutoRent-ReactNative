@@ -11,7 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generateCarImageUrl } from '../services/ImageService';
 
-const BookingScreen = ({ car, onClose, onConfirm, onBack, onBookingConfirmed }) => {
+const BookingScreen = ({ car, onClose, onConfirm, onBack, onBookingConfirmed, isDarkMode = false }) => {
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [rentalPeriod, setRentalPeriod] = useState(null);
   const [pickupLocation, setPickupLocation] = useState('');
@@ -149,16 +149,16 @@ const BookingScreen = ({ car, onClose, onConfirm, onBack, onBookingConfirmed }) 
   // Move the early return check to after all hooks are called
   if (!car || !rentalPeriod || !priceBreakdown) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleClose}>
-            <Text style={styles.backIcon}>←</Text>
+      <SafeAreaView style={[styles.container, isDarkMode && styles.darkContainer]}>
+        <View style={[styles.header, isDarkMode && styles.darkHeader]}>
+          <TouchableOpacity style={[styles.backButton, isDarkMode && styles.darkBackButton]} onPress={handleClose}>
+            <Text style={[styles.backIcon, isDarkMode && styles.darkText]}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Booking summary</Text>
+          <Text style={[styles.headerTitle, isDarkMode && styles.darkText]}>Booking summary</Text>
           <View style={styles.placeholder} />
         </View>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading booking details...</Text>
+          <Text style={[styles.loadingText, isDarkMode && styles.darkText]}>Loading booking details...</Text>
         </View>
       </SafeAreaView>
     );
@@ -167,19 +167,19 @@ const BookingScreen = ({ car, onClose, onConfirm, onBack, onBookingConfirmed }) 
   const rating = generateRating(car);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, isDarkMode && styles.darkContainer]}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleClose}>
-          <Text style={styles.backIcon}>←</Text>
+      <View style={[styles.header, isDarkMode && styles.darkHeader]}>
+        <TouchableOpacity style={[styles.backButton, isDarkMode && styles.darkBackButton]} onPress={handleClose}>
+          <Text style={[styles.backIcon, isDarkMode && styles.darkText]}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Booking summary</Text>
+        <Text style={[styles.headerTitle, isDarkMode && styles.darkText]}>Booking summary</Text>
         <View style={styles.placeholder} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Car Details Card */}
-        <View style={styles.carCard}>
+        <View style={[styles.carCard, isDarkMode && styles.darkCard]}>
           <Image
             source={{ 
               uri: generateCarImageUrl(car),
@@ -189,76 +189,76 @@ const BookingScreen = ({ car, onClose, onConfirm, onBack, onBookingConfirmed }) 
             resizeMode="cover"
           />
           <View style={styles.carInfo}>
-            <Text style={styles.carName}>{car.make} {car.model}</Text>
-            <Text style={styles.carSpecs}>
+            <Text style={[styles.carName, isDarkMode && styles.darkText]}>{car.make} {car.model}</Text>
+            <Text style={[styles.carSpecs, isDarkMode && styles.darkSecondaryText]}>
               {car.fuel_type === 'electric' ? 'Electric' : 'Gasoline'} • {car.transmission === 'a' ? 'Automatic' : 'Manual'}
             </Text>
             <View style={styles.ratingContainer}>
               <Text style={styles.ratingIcon}>⭐</Text>
-              <Text style={styles.ratingText}>{rating}</Text>
+              <Text style={[styles.ratingText, isDarkMode && styles.darkText]}>{rating}</Text>
             </View>
           </View>
         </View>
 
         {/* Rental Period */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>RENTAL PERIOD</Text>
-          <View style={styles.dateContainer}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.darkSecondaryText]}>RENTAL PERIOD</Text>
+          <View style={[styles.dateContainer, isDarkMode && styles.darkCard]}>
             <View style={styles.dateItem}>
               <Text style={styles.dateIcon}>📅</Text>
-              <Text style={styles.dateText}>{formatDate(rentalPeriod.startDate)}</Text>
-              <Text style={styles.timeText}>{rentalPeriod.startTime}</Text>
+              <Text style={[styles.dateText, isDarkMode && styles.darkText]}>{formatDate(rentalPeriod.startDate)}</Text>
+              <Text style={[styles.timeText, isDarkMode && styles.darkText]}>{rentalPeriod.startTime}</Text>
             </View>
             <View style={styles.dateItem}>
               <Text style={styles.dateIcon}>📅</Text>
-              <Text style={styles.dateText}>{formatDate(rentalPeriod.endDate)}</Text>
-              <Text style={styles.timeText}>{rentalPeriod.endTime}</Text>
+              <Text style={[styles.dateText, isDarkMode && styles.darkText]}>{formatDate(rentalPeriod.endDate)}</Text>
+              <Text style={[styles.timeText, isDarkMode && styles.darkText]}>{rentalPeriod.endTime}</Text>
             </View>
           </View>
-          <Text style={styles.durationText}>Duration: {rentalPeriod.duration} days</Text>
+          <Text style={[styles.durationText, isDarkMode && styles.darkSecondaryText]}>Duration: {rentalPeriod.duration} days</Text>
         </View>
 
         {/* Pickup Location */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>PICKUP LOCATION</Text>
-          <View style={styles.locationContainer}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.darkSecondaryText]}>PICKUP LOCATION</Text>
+          <View style={[styles.locationContainer, isDarkMode && styles.darkCard]}>
             <Text style={styles.locationIcon}>📍</Text>
-            <Text style={styles.locationText}>{pickupLocation}</Text>
+            <Text style={[styles.locationText, isDarkMode && styles.darkText]}>{pickupLocation}</Text>
           </View>
         </View>
 
         {/* Price Breakdown */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>PRICE BREAKDOWN</Text>
-          <View style={styles.priceContainer}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.darkSecondaryText]}>PRICE BREAKDOWN</Text>
+          <View style={[styles.priceContainer, isDarkMode && styles.darkCard]}>
             <View style={styles.priceItem}>
-              <Text style={styles.priceLabel}>Daily rate</Text>
-              <Text style={styles.priceValue}>${priceBreakdown.dailyRate}.00</Text>
+              <Text style={[styles.priceLabel, isDarkMode && styles.darkText]}>Daily rate</Text>
+              <Text style={[styles.priceValue, isDarkMode && styles.darkText]}>${priceBreakdown.dailyRate}.00</Text>
             </View>
             <View style={styles.priceItem}>
-              <Text style={styles.priceLabel}>Service fee</Text>
-              <Text style={styles.priceValue}>${priceBreakdown.serviceFee}.00</Text>
+              <Text style={[styles.priceLabel, isDarkMode && styles.darkText]}>Service fee</Text>
+              <Text style={[styles.priceValue, isDarkMode && styles.darkText]}>${priceBreakdown.serviceFee}.00</Text>
             </View>
             <View style={styles.priceItem}>
-              <Text style={styles.priceLabel}>Insurance</Text>
-              <Text style={styles.priceValue}>${priceBreakdown.insurance}.00</Text>
+              <Text style={[styles.priceLabel, isDarkMode && styles.darkText]}>Insurance</Text>
+              <Text style={[styles.priceValue, isDarkMode && styles.darkText]}>${priceBreakdown.insurance}.00</Text>
             </View>
-            <View style={[styles.priceItem, styles.totalItem]}>
-              <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>${priceBreakdown.total}.00</Text>
+            <View style={[styles.priceItem, styles.totalItem, isDarkMode && styles.darkTotalItem]}>
+              <Text style={[styles.totalLabel, isDarkMode && styles.darkText]}>Total</Text>
+              <Text style={[styles.totalValue, isDarkMode && styles.darkText]}>${priceBreakdown.total}.00</Text>
             </View>
           </View>
         </View>
 
         {/* Payment Method */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>PAYMENT METHOD</Text>
-          <View style={styles.paymentContainer}>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.darkSecondaryText]}>PAYMENT METHOD</Text>
+          <View style={[styles.paymentContainer, isDarkMode && styles.darkCard]}>
             <View style={styles.paymentMethod}>
               <Text style={styles.paymentIcon}>
                 {paymentMethod === 'card' ? '💳' : '💵'}
               </Text>
-              <Text style={styles.paymentText}>
+              <Text style={[styles.paymentText, isDarkMode && styles.darkText]}>
                 {paymentMethod === 'card' ? 'Credit card' : 'Cash'}
               </Text>
             </View>
@@ -523,6 +523,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
+  },
+  darkContainer: {
+    backgroundColor: '#121212',
+  },
+  darkHeader: {
+    backgroundColor: '#1e1e1e',
+    borderBottomColor: '#333',
+  },
+  darkBackButton: {
+    backgroundColor: '#333',
+  },
+  darkText: {
+    color: '#fff',
+  },
+  darkCard: {
+    backgroundColor: '#1e1e1e',
+  },
+  darkSecondaryText: {
+    color: '#aaa',
+  },
+  darkTotalItem: {
+    borderTopColor: '#444',
   },
 });
 

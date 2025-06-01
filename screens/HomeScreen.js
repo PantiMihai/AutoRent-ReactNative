@@ -16,7 +16,7 @@ import { generateCarImageUrl } from '../services/ImageService';
 import { RecentlyViewedUtil } from '../utils/RecentlyViewedUtil';
 import CarDetailsScreen from './CarDetailsScreen';
 
-const HomeScreen = ({ onNavigate }) => {
+const HomeScreen = ({ onNavigate, isDarkMode = false }) => {
   const [pickupLocation, setPickupLocation] = useState('');
   const [startDate, setStartDate] = useState('Start Date');
   const [endDate, setEndDate] = useState('End Date');
@@ -146,7 +146,7 @@ const HomeScreen = ({ onNavigate }) => {
   };
 
   const renderFeaturedVehicle = ({ item }) => (
-    <View style={styles.featuredCard}>
+    <View style={[styles.featuredCard, isDarkMode && styles.darkCard]}>
       <View style={styles.featuredImageContainer}>
         <Image
           source={{ uri: generateCarImageUrl(item) }}
@@ -158,12 +158,12 @@ const HomeScreen = ({ onNavigate }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.featuredInfo}>
-        <Text style={styles.featuredName}>{item.make} {item.model}</Text>
+        <Text style={[styles.featuredName, isDarkMode && styles.darkText]}>{item.make} {item.model}</Text>
         <View style={styles.ratingRow}>
           <Text style={styles.ratingText}>⭐ {item.rating}</Text>
-          <Text style={styles.fuelType}>• {item.fuel_type}</Text>
+          <Text style={[styles.fuelType, isDarkMode && styles.darkSecondaryText]}>• {item.fuel_type}</Text>
         </View>
-        <Text style={styles.featuredPrice}>${item.price} <Text style={styles.priceUnit}>/day</Text></Text>
+        <Text style={[styles.featuredPrice, isDarkMode && styles.darkText]}>${item.price} <Text style={[styles.priceUnit, isDarkMode && styles.darkSecondaryText]}>/day</Text></Text>
         <TouchableOpacity 
           style={styles.detailsButton}
           onPress={() => handleCarPress(item)}
@@ -176,7 +176,7 @@ const HomeScreen = ({ onNavigate }) => {
 
   const renderRecentVehicle = ({ item }) => (
     <TouchableOpacity 
-      style={styles.recentCard}
+      style={[styles.recentCard, isDarkMode && styles.darkCard]}
       onPress={() => handleCarPress(item)}
     >
       <Image
@@ -185,11 +185,11 @@ const HomeScreen = ({ onNavigate }) => {
         resizeMode="cover"
       />
       <View style={styles.recentInfo}>
-        <Text style={styles.recentName}>{item.make} {item.model}</Text>
+        <Text style={[styles.recentName, isDarkMode && styles.darkText]}>{item.make} {item.model}</Text>
         <View style={styles.recentRatingRow}>
           <Text style={styles.recentRating}>⭐ {item.rating}</Text>
         </View>
-        <Text style={styles.recentPrice}>${item.price} <Text style={styles.priceUnit}>/day</Text></Text>
+        <Text style={[styles.recentPrice, isDarkMode && styles.darkText]}>${item.price} <Text style={[styles.priceUnit, isDarkMode && styles.darkSecondaryText]}>/day</Text></Text>
       </View>
       <TouchableOpacity 
         style={styles.bookButton}
@@ -205,22 +205,22 @@ const HomeScreen = ({ onNavigate }) => {
 
   return (
     <>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.container, isDarkMode && styles.darkContainer]} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Find your car</Text>
-          <Text style={styles.headerSubtitle}>Rent the perfect vehicle</Text>
+          <Text style={[styles.headerTitle, isDarkMode && styles.darkText]}>Find your car</Text>
+          <Text style={[styles.headerSubtitle, isDarkMode && styles.darkSecondaryText]}>Rent the perfect vehicle</Text>
         </View>
 
         {/* Search Form */}
-        <View style={styles.searchForm}>
+        <View style={[styles.searchForm, isDarkMode && styles.darkSearchForm]}>
           {/* Pickup Location */}
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, isDarkMode && styles.darkInputContainer]}>
             <Text style={styles.locationIcon}>📍</Text>
             <TextInput
-              style={styles.locationInput}
+              style={[styles.locationInput, isDarkMode && styles.darkInput]}
               placeholder="Pickup location"
-              placeholderTextColor="#999"
+              placeholderTextColor={isDarkMode ? "#888" : "#999"}
               value={pickupLocation}
               onChangeText={setPickupLocation}
             />
@@ -228,14 +228,14 @@ const HomeScreen = ({ onNavigate }) => {
 
           {/* Date Selectors */}
           <View style={styles.dateRow}>
-            <TouchableOpacity style={styles.dateSelector} onPress={() => handleDatePress('Start')}>
+            <TouchableOpacity style={[styles.dateSelector, isDarkMode && styles.darkInputContainer]} onPress={() => handleDatePress('Start')}>
               <Text style={styles.dateIcon}>📅</Text>
-              <Text style={styles.dateText}>{startDate}</Text>
+              <Text style={[styles.dateText, isDarkMode && styles.darkSecondaryText]}>{startDate}</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.dateSelector} onPress={() => handleDatePress('End')}>
+            <TouchableOpacity style={[styles.dateSelector, isDarkMode && styles.darkInputContainer]} onPress={() => handleDatePress('End')}>
               <Text style={styles.dateIcon}>📅</Text>
-              <Text style={styles.dateText}>{endDate}</Text>
+              <Text style={[styles.dateText, isDarkMode && styles.darkSecondaryText]}>{endDate}</Text>
             </TouchableOpacity>
           </View>
 
@@ -251,7 +251,7 @@ const HomeScreen = ({ onNavigate }) => {
         {/* Featured Vehicles */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Featured Vehicles</Text>
+            <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>Featured Vehicles</Text>
             <TouchableOpacity onPress={handleViewAll}>
               <Text style={styles.viewAllText}>View all</Text>
             </TouchableOpacity>
@@ -271,7 +271,7 @@ const HomeScreen = ({ onNavigate }) => {
         {recentlyViewed.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recently Viewed</Text>
+              <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>Recently Viewed</Text>
               <TouchableOpacity onPress={clearRecentlyViewed}>
                 <Text style={styles.clearAllText}>Clear all</Text>
               </TouchableOpacity>
@@ -300,6 +300,7 @@ const HomeScreen = ({ onNavigate }) => {
             onBack={handleCloseCarDetails}
             onToggleFavorite={handleCarDetailsFavorite}
             isFavorite={isCarFavorite(selectedCar)}
+            isDarkMode={isDarkMode}
           />
         )}
       </Modal>
@@ -558,6 +559,27 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '500',
+  },
+  darkContainer: {
+    backgroundColor: '#121212',
+  },
+  darkText: {
+    color: '#fff',
+  },
+  darkSecondaryText: {
+    color: '#888',
+  },
+  darkSearchForm: {
+    backgroundColor: '#1e1e1e',
+  },
+  darkInputContainer: {
+    borderBottomColor: '#333',
+  },
+  darkInput: {
+    color: '#fff',
+  },
+  darkCard: {
+    backgroundColor: '#1e1e1e',
   },
 });
 

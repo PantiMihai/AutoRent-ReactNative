@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-const BottomNavigation = ({ activeTab, onTabPress }) => {
+const BottomNavigation = ({ activeTab, onTabPress, isDarkMode = false }) => {
   const tabs = [
     { key: 'home', label: 'Home', icon: '🏠' },
     { key: 'catalog', label: 'Catalog', icon: '🚗' },
@@ -17,7 +17,7 @@ const BottomNavigation = ({ activeTab, onTabPress }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
       {tabs.map((tab) => (
         <TouchableOpacity
           key={tab.key}
@@ -33,6 +33,7 @@ const BottomNavigation = ({ activeTab, onTabPress }) => {
           </Text>
           <Text style={[
             styles.tabLabel,
+            isDarkMode && styles.darkTabLabel,
             activeTab === tab.key && styles.tabLabelActive
           ]}>
             {tab.label}
@@ -60,6 +61,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 8,
   },
+  darkContainer: {
+    backgroundColor: '#1e1e1e',
+    borderTopColor: '#333',
+  },
   tab: {
     flex: 1,
     alignItems: 'center',
@@ -77,6 +82,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     fontWeight: '500',
+  },
+  darkTabLabel: {
+    color: '#aaa',
   },
   tabLabelActive: {
     color: '#2196F3',

@@ -88,7 +88,7 @@ const getCarType = (car) => {
   }
 };
 
-const CatalogueScreen = () => {
+const CatalogueScreen = ({ isDarkMode = false }) => {
   const [cars, setCars] = useState([]);
   const [filteredCars, setFilteredCars] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -312,6 +312,7 @@ const CatalogueScreen = () => {
       onToggleFavorite={() => toggleFavorite(item.id)}
       onToggleCompare={() => toggleCompare(item.id)}
       onPress={() => handleCarPress(item)}
+      isDarkMode={isDarkMode}
     />
   );
 
@@ -320,20 +321,20 @@ const CatalogueScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Catalogue</Text>
+      <View style={[styles.header, isDarkMode && styles.darkHeader]}>
+        <Text style={[styles.headerTitle, isDarkMode && styles.darkText]}>Catalogue</Text>
       </View>
 
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
+      <View style={[styles.searchContainer, isDarkMode && styles.darkSearchContainer]}>
+        <View style={[styles.searchInputContainer, isDarkMode && styles.darkSearchInputContainer]}>
           <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, isDarkMode && styles.darkSearchInput]}
             placeholder="Search Cars..."
-            placeholderTextColor="#999"
+            placeholderTextColor={isDarkMode ? "#888" : "#999"}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -341,13 +342,13 @@ const CatalogueScreen = () => {
       </View>
 
       {/* Filter Tabs */}
-      <View style={styles.filterContainer}>
+      <View style={[styles.filterContainer, isDarkMode && styles.darkFilterContainer]}>
         <View style={styles.filterRow}>
           <TouchableOpacity 
-            style={styles.filterIconButton}
+            style={[styles.filterIconButton, isDarkMode && styles.darkFilterIconButton]}
             onPress={toggleFilters}
           >
-            <Text style={styles.filterIcon}>☰</Text>
+            <Text style={[styles.filterIcon, isDarkMode && styles.darkText]}>☰</Text>
           </TouchableOpacity>
           <ScrollView 
             horizontal 
@@ -360,6 +361,7 @@ const CatalogueScreen = () => {
                 key={key}
                 style={[
                   styles.filterTab,
+                  isDarkMode && styles.darkFilterTab,
                   selectedFilter === key && styles.filterTabActive
                 ]}
                 onPress={() => setSelectedFilter(key)}
@@ -367,6 +369,7 @@ const CatalogueScreen = () => {
               >
                 <Text style={[
                   styles.filterTabText,
+                  isDarkMode && styles.darkFilterTabText,
                   selectedFilter === key && styles.filterTabTextActive
                 ]}>
                   {label}
@@ -378,22 +381,22 @@ const CatalogueScreen = () => {
         
         {/* Expanded Filters */}
         {filtersExpanded && (
-          <View style={styles.expandedFilters}>
-            <Text style={styles.expandedFiltersTitle}>Additional Filters</Text>
+          <View style={[styles.expandedFilters, isDarkMode && styles.darkExpandedFilters]}>
+            <Text style={[styles.expandedFiltersTitle, isDarkMode && styles.darkText]}>Additional Filters</Text>
             <View style={styles.expandedFilterRow}>
-              <TouchableOpacity style={styles.expandedFilterButton}>
-                <Text style={styles.expandedFilterText}>Price Range</Text>
+              <TouchableOpacity style={[styles.expandedFilterButton, isDarkMode && styles.darkExpandedFilterButton]}>
+                <Text style={[styles.expandedFilterText, isDarkMode && styles.darkText]}>Price Range</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.expandedFilterButton}>
-                <Text style={styles.expandedFilterText}>Year Range</Text>
+              <TouchableOpacity style={[styles.expandedFilterButton, isDarkMode && styles.darkExpandedFilterButton]}>
+                <Text style={[styles.expandedFilterText, isDarkMode && styles.darkText]}>Year Range</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.expandedFilterRow}>
-              <TouchableOpacity style={styles.expandedFilterButton}>
-                <Text style={styles.expandedFilterText}>Fuel Type</Text>
+              <TouchableOpacity style={[styles.expandedFilterButton, isDarkMode && styles.darkExpandedFilterButton]}>
+                <Text style={[styles.expandedFilterText, isDarkMode && styles.darkText]}>Fuel Type</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.expandedFilterButton}>
-                <Text style={styles.expandedFilterText}>Transmission</Text>
+              <TouchableOpacity style={[styles.expandedFilterButton, isDarkMode && styles.darkExpandedFilterButton]}>
+                <Text style={[styles.expandedFilterText, isDarkMode && styles.darkText]}>Transmission</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -401,10 +404,10 @@ const CatalogueScreen = () => {
       </View>
 
       {/* Compare Section */}
-      <View style={styles.compareSection}>
+      <View style={[styles.compareSection, isDarkMode && styles.darkCompareSection]}>
         <View style={styles.compareHeader}>
-          <Text style={styles.compareTitle}>Compare Cars</Text>
-          <Text style={styles.compareSubtitle}>
+          <Text style={[styles.compareTitle, isDarkMode && styles.darkText]}>Compare Cars</Text>
+          <Text style={[styles.compareSubtitle, isDarkMode && styles.darkSecondaryText]}>
             Select up to 2 cars ({compareList.length}/2)
           </Text>
         </View>
@@ -438,7 +441,7 @@ const CatalogueScreen = () => {
         onRefresh={fetchCars}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No cars found</Text>
+            <Text style={[styles.emptyText, isDarkMode && styles.darkText]}>No cars found</Text>
             <TouchableOpacity style={styles.retryButton} onPress={fetchCars}>
               <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
@@ -456,6 +459,7 @@ const CatalogueScreen = () => {
           cars={getComparedCars()}
           onClose={handleCloseCompare}
           onRemoveCar={handleRemoveFromCompare}
+          isDarkMode={isDarkMode}
         />
       </Modal>
       
@@ -470,6 +474,7 @@ const CatalogueScreen = () => {
           onBack={handleCloseCarDetails}
           onToggleFavorite={handleCarDetailsFavorite}
           isFavorite={selectedCar ? favorites.includes(selectedCar.id) : false}
+          isDarkMode={isDarkMode}
         />
       </Modal>
     </View>
@@ -681,6 +686,48 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#666',
+  },
+  darkContainer: {
+    backgroundColor: '#121212',
+  },
+  darkHeader: {
+    backgroundColor: '#212121',
+  },
+  darkText: {
+    color: '#fff',
+  },
+  darkSearchContainer: {
+    backgroundColor: '#212121',
+  },
+  darkSearchInputContainer: {
+    backgroundColor: '#333',
+  },
+  darkSearchInput: {
+    color: '#fff',
+  },
+  darkFilterContainer: {
+    backgroundColor: '#212121',
+  },
+  darkFilterIconButton: {
+    backgroundColor: '#333',
+  },
+  darkFilterTab: {
+    backgroundColor: '#333',
+  },
+  darkFilterTabText: {
+    color: '#fff',
+  },
+  darkExpandedFilters: {
+    backgroundColor: '#333',
+  },
+  darkExpandedFilterButton: {
+    backgroundColor: '#444',
+  },
+  darkSecondaryText: {
+    color: '#999',
+  },
+  darkCompareSection: {
+    backgroundColor: '#212121',
   },
 });
 

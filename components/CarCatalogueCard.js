@@ -8,7 +8,8 @@ const CarCatalogueCard = ({
   isInCompare, 
   onToggleFavorite, 
   onToggleCompare,
-  onPress 
+  onPress,
+  isDarkMode = false
 }) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
@@ -29,12 +30,12 @@ const CarCatalogueCard = ({
 
   return (
     <TouchableOpacity 
-      style={styles.card} 
+      style={[styles.card, isDarkMode && styles.darkCard]} 
       activeOpacity={0.8}
       onPress={onPress}
     >
       {/* Car Image Container */}
-      <View style={styles.imageContainer}>
+      <View style={[styles.imageContainer, isDarkMode && styles.darkImageContainer]}>
         {imageUrl && !imageError ? (
           <>
             {imageLoading && (
@@ -83,23 +84,24 @@ const CarCatalogueCard = ({
 
       {/* Car Information */}
       <View style={styles.carInfo}>
-        <Text style={styles.carMake} numberOfLines={1}>
+        <Text style={[styles.carMake, isDarkMode && styles.darkText]} numberOfLines={1}>
           {car.make} {car.model}
         </Text>
-        <Text style={styles.carType}>
+        <Text style={[styles.carType, isDarkMode && styles.darkSecondaryText]}>
           {car.type}
         </Text>
         
         {/* Price and Compare */}
         <View style={styles.bottomRow}>
-          <Text style={styles.price}>
+          <Text style={[styles.price, isDarkMode && styles.darkText]}>
             ${car.price}
-            <Text style={styles.priceUnit}> /day</Text>
+            <Text style={[styles.priceUnit, isDarkMode && styles.darkSecondaryText]}> /day</Text>
           </Text>
           
           <TouchableOpacity 
             style={[
               styles.compareButton,
+              isDarkMode && styles.darkCompareButton,
               isInCompare && styles.compareButtonActive
             ]}
             onPress={onToggleCompare}
@@ -107,6 +109,7 @@ const CarCatalogueCard = ({
           >
             <Text style={[
               styles.compareButtonText,
+              isDarkMode && styles.darkCompareButtonText,
               isInCompare && styles.compareButtonTextActive
             ]}>
               {isInCompare ? '−' : '+'}
@@ -253,6 +256,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   compareButtonTextActive: {
+    color: '#fff',
+  },
+  darkCard: {
+    backgroundColor: '#333',
+  },
+  darkImageContainer: {
+    backgroundColor: '#444',
+  },
+  darkText: {
+    color: '#fff',
+  },
+  darkSecondaryText: {
+    color: '#ccc',
+  },
+  darkCompareButton: {
+    backgroundColor: '#555',
+  },
+  darkCompareButtonText: {
     color: '#fff',
   },
 });

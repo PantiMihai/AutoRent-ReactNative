@@ -18,26 +18,17 @@ import LoadingSpinner from './components/LoadingSpinner';
 import CatalogueScreen from './screens/CatalogueScreen';
 import HomeScreen from './screens/HomeScreen';
 import AuthScreen from './screens/AuthScreen';
+import ProfileScreen from './screens/ProfileScreen';
 import BottomNavigation from './components/BottomNavigation';
 import AuthService from './services/AuthService';
+import DarkModeUtil from './utils/DarkModeUtil';
 
 // Placeholder screens for other tabs
-const FavouritesScreen = () => (
-  <View style={styles.placeholderScreen}>
+const FavouritesScreen = ({ isDarkMode }) => (
+  <View style={[styles.placeholderScreen, isDarkMode && styles.darkPlaceholderScreen]}>
     <Text style={styles.placeholderTitle}>❤️ Favourites</Text>
-    <Text style={styles.placeholderText}>Your favorite cars</Text>
-    <Text style={styles.placeholderSubtext}>Cars you've marked as favorites will appear here</Text>
-  </View>
-);
-
-const ProfileScreen = ({ onLogout }) => (
-  <View style={styles.placeholderScreen}>
-    <Text style={styles.placeholderTitle}>👤 Profile</Text>
-    <Text style={styles.placeholderText}>Your Profile</Text>
-    <Text style={styles.placeholderSubtext}>Manage your account and preferences</Text>
-    <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
-      <Text style={styles.logoutButtonText}>Logout</Text>
-    </TouchableOpacity>
+    <Text style={[styles.placeholderText, isDarkMode && styles.darkText]}>Your favorite cars</Text>
+    <Text style={[styles.placeholderSubtext, isDarkMode && styles.darkSecondaryText]}>Cars you've marked as favorites will appear here</Text>
   </View>
 );
 
@@ -50,8 +41,12 @@ export default function App() {
   const [showDemo, setShowDemo] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
+    // Initialize app with dark mode and auth state
+    initializeApp();
+
     // Listen to authentication state changes
     const unsubscribe = AuthService.onAuthStateChanged((user) => {
       console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
@@ -62,6 +57,25 @@ export default function App() {
     // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
+
+  const initializeApp = async () => {
+    try {
+      // Load dark mode preference
+      const darkMode = await DarkModeUtil.getDarkMode();
+      setIsDarkMode(darkMode);
+    } catch (error) {
+      console.error('Error initializing app:', error);
+    }
+  };
+
+  const handleDarkModeToggle = async () => {
+    try {
+      const newMode = await DarkModeUtil.toggleDarkMode();
+      setIsDarkMode(newMode);
+    } catch (error) {
+      console.error('Error toggling dark mode:', error);
+    }
+  };
 
   const handleAuthSuccess = () => {
     setIsAuthenticated(true);
@@ -101,29 +115,37 @@ export default function App() {
   const renderScreen = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeScreen onNavigate={handleNavigate} />;
+        return <HomeScreen onNavigate={handleNavigate} isDarkMode={isDarkMode} />;
       
       case 'catalog':
-        return <CatalogueScreen />;
+        return <CatalogueScreen isDarkMode={isDarkMode} />;
       
       case 'favourites':
-        return <FavouritesScreen />;
+        return <FavouritesScreen isDarkMode={isDarkMode} />;
       
       case 'profile':
-        return <ProfileScreen onLogout={handleLogout} />;
+        return (
+          <ProfileScreen 
+            onLogout={handleLogout} 
+            onNavigate={handleNavigate} 
+            isDarkMode={isDarkMode}
+            onToggleDarkMode={handleDarkModeToggle}
+          />
+        );
       
       default:
-        return <HomeScreen onNavigate={handleNavigate} />;
+        return <HomeScreen onNavigate={handleNavigate} isDarkMode={isDarkMode} />;
     }
   };
 
   // Show loading while checking auth state
   if (authLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, isDarkMode && styles.darkContainer]}>
+        <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={isDarkMode ? "#121212" : "#fff"} />
         <View style={styles.loadingContainer}>
           <LoadingSpinner />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={[styles.loadingText, isDarkMode && styles.darkText]}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -131,13 +153,13 @@ export default function App() {
 
   // Show auth screen if not authenticated
   if (!isAuthenticated) {
-    return <AuthScreen onAuthSuccess={handleAuthSuccess} />;
+    return <AuthScreen onAuthSuccess={handleAuthSuccess} isDarkMode={isDarkMode} />;
   }
 
   // Show main app if authenticated
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+    <SafeAreaView style={[styles.container, isDarkMode && styles.darkContainer]}>
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={isDarkMode ? "#121212" : "#fff"} />
       
       {/* Main Content */}
       <View style={styles.screenContainer}>
@@ -145,7 +167,7 @@ export default function App() {
       </View>
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} onTabPress={handleTabPress} />
+      <BottomNavigation activeTab={activeTab} onTabPress={handleTabPress} isDarkMode={isDarkMode} />
     </SafeAreaView>
   );
 }
@@ -317,5 +339,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  darkContainer: {
+    backgroundColor: '#121212',
+  },
+  darkPlaceholderScreen: {
+    backgroundColor: '#212121',
+  },
+  darkText: {
+    color: '#fff',
+  },
+  darkSecondaryText: {
+    color: '#999',
   },
 });

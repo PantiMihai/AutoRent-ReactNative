@@ -14,7 +14,7 @@ import { generateCarImageUrl } from '../services/ImageService';
 import { RecentlyViewedUtil } from '../utils/RecentlyViewedUtil';
 import BookingScreen from './BookingScreen';
 
-const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite }) => {
+const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite, isDarkMode = false }) => {
   const [showBooking, setShowBooking] = useState(false);
 
   if (!car) return null;
@@ -142,14 +142,14 @@ const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite }) => {
   const engineSpecs = getEngineSpecs(car);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, isDarkMode && styles.darkContainer]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backIcon}>←</Text>
+        <TouchableOpacity style={[styles.backButton, isDarkMode && styles.darkBackButton]} onPress={onBack}>
+          <Text style={[styles.backIcon, isDarkMode && styles.darkText]}>←</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={styles.favoriteButton} 
+          style={[styles.favoriteButton, isDarkMode && styles.darkFavoriteButton]} 
           onPress={onToggleFavorite}
         >
           <Text style={styles.favoriteIcon}>
@@ -160,7 +160,7 @@ const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite }) => {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Car Image */}
-        <View style={styles.imageContainer}>
+        <View style={[styles.imageContainer, isDarkMode && styles.darkImageContainer]}>
           <Image
             source={{ 
               uri: generateCarImageUrl(car),
@@ -172,13 +172,13 @@ const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite }) => {
         </View>
 
         {/* Car Info Card */}
-        <View style={styles.infoCard}>
+        <View style={[styles.infoCard, isDarkMode && styles.darkInfoCard]}>
           {/* Car Name and Rating */}
           <View style={styles.titleSection}>
-            <Text style={styles.carName}>{car.make} {car.model}</Text>
+            <Text style={[styles.carName, isDarkMode && styles.darkText]}>{car.make} {car.model}</Text>
             <View style={styles.ratingContainer}>
               <Text style={styles.ratingIcon}>⭐</Text>
-              <Text style={styles.ratingText}>{rating}</Text>
+              <Text style={[styles.ratingText, isDarkMode && styles.darkText]}>{rating}</Text>
             </View>
           </View>
 
@@ -187,20 +187,20 @@ const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite }) => {
             {performanceInfo.map((info, index) => (
               <View key={index} style={styles.performanceItem}>
                 <Text style={styles.performanceIcon}>{info.icon}</Text>
-                <Text style={styles.performanceLabel}>{info.label}</Text>
-                {info.value ? <Text style={styles.performanceValue}>{info.value}</Text> : null}
+                <Text style={[styles.performanceLabel, isDarkMode && styles.darkSecondaryText]}>{info.label}</Text>
+                {info.value ? <Text style={[styles.performanceValue, isDarkMode && styles.darkText]}>{info.value}</Text> : null}
               </View>
             ))}
           </View>
 
           {/* Specifications */}
           <View style={styles.specificationsSection}>
-            <Text style={styles.specificationsTitle}>Specifications</Text>
-            <View style={styles.specificationsContainer}>
+            <Text style={[styles.specificationsTitle, isDarkMode && styles.darkText]}>Specifications</Text>
+            <View style={[styles.specificationsContainer, isDarkMode && styles.darkSpecificationsContainer]}>
               {engineSpecs.map((spec, index) => (
-                <View key={index} style={styles.specificationItem}>
+                <View key={index} style={[styles.specificationItem, isDarkMode && styles.darkSpecificationItem]}>
                   <View style={styles.specificationLeft}>
-                    <View style={styles.specificationIconContainer}>
+                    <View style={[styles.specificationIconContainer, isDarkMode && styles.darkSpecificationIconContainer]}>
                       <Text style={styles.specificationIcon}>
                         {spec.label === 'Engine' || spec.label === 'Motor' ? '🔧' :
                          spec.label === 'Range' ? '🔋' :
@@ -212,9 +212,9 @@ const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite }) => {
                          spec.label === 'Cylinders' ? '🔩' : '📋'}
                       </Text>
                     </View>
-                    <Text style={styles.specificationLabel}>{spec.label}</Text>
+                    <Text style={[styles.specificationLabel, isDarkMode && styles.darkSecondaryText]}>{spec.label}</Text>
                   </View>
-                  <Text style={styles.specificationValue}>{spec.value}</Text>
+                  <Text style={[styles.specificationValue, isDarkMode && styles.darkText]}>{spec.value}</Text>
                 </View>
               ))}
             </View>
@@ -223,8 +223,8 @@ const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite }) => {
           {/* Price and Book Button */}
           <View style={styles.bookingSection}>
             <View style={styles.priceContainer}>
-              <Text style={styles.price}>${car.price}</Text>
-              <Text style={styles.priceUnit}>/day</Text>
+              <Text style={[styles.price, isDarkMode && styles.darkText]}>${car.price}</Text>
+              <Text style={[styles.priceUnit, isDarkMode && styles.darkSecondaryText]}>/day</Text>
             </View>
             <TouchableOpacity style={styles.bookButton} onPress={handleBookNow}>
               <Text style={styles.bookButtonText}>Book Now</Text>
@@ -243,6 +243,7 @@ const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite }) => {
           car={car}
           onBack={handleCloseBooking}
           onBookingConfirmed={handleBookingConfirmed}
+          isDarkMode={isDarkMode}
         />
       </Modal>
     </SafeAreaView>
@@ -447,6 +448,36 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  darkContainer: {
+    backgroundColor: '#121212',
+  },
+  darkBackButton: {
+    backgroundColor: 'rgba(30, 30, 30, 0.9)',
+  },
+  darkFavoriteButton: {
+    backgroundColor: 'rgba(30, 30, 30, 0.9)',
+  },
+  darkText: {
+    color: '#fff',
+  },
+  darkImageContainer: {
+    backgroundColor: '#1e1e1e',
+  },
+  darkInfoCard: {
+    backgroundColor: '#1e1e1e',
+  },
+  darkSecondaryText: {
+    color: '#aaa',
+  },
+  darkSpecificationsContainer: {
+    backgroundColor: '#2a2a2a',
+  },
+  darkSpecificationItem: {
+    borderBottomColor: '#444',
+  },
+  darkSpecificationIconContainer: {
+    backgroundColor: '#333',
   },
 });
 

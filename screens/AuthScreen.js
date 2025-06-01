@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import LoginScreen from './LoginScreen';
 import RegisterScreen from './RegisterScreen';
 
-const AuthScreen = ({ onAuthSuccess }) => {
+const AuthScreen = ({ onAuthSuccess, isDarkMode = false }) => {
   const [isLoginMode, setIsLoginMode] = useState(true);
 
   const handleNavigateToRegister = () => {
@@ -24,16 +24,18 @@ const AuthScreen = ({ onAuthSuccess }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
       {isLoginMode ? (
         <LoginScreen 
           onNavigateToRegister={handleNavigateToRegister}
           onLoginSuccess={handleLoginSuccess}
+          isDarkMode={isDarkMode}
         />
       ) : (
         <RegisterScreen 
           onNavigateToLogin={handleNavigateToLogin}
           onRegisterSuccess={handleRegisterSuccess}
+          isDarkMode={isDarkMode}
         />
       )}
     </View>
@@ -43,6 +45,9 @@ const AuthScreen = ({ onAuthSuccess }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  darkContainer: {
+    backgroundColor: '#121212',
   },
 });
 
