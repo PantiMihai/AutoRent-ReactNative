@@ -9,13 +9,17 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
+// Initialize Firebase first
+import './services/firebaseConfig';
 import { APIController } from './controllers/APIController';
 import CarCard from './components/CarCard';
 import CarImageDemo from './components/CarImageDemo';
 import LoadingSpinner from './components/LoadingSpinner';
 import CatalogueScreen from './screens/CatalogueScreen';
 import HomeScreen from './screens/HomeScreen';
+import AuthScreen from './screens/AuthScreen';
 import BottomNavigation from './components/BottomNavigation';
+import AuthService from './services/AuthService';
 
 // Placeholder screens for other tabs
 const FavouritesScreen = () => (
@@ -26,11 +30,14 @@ const FavouritesScreen = () => (
   </View>
 );
 
-const ProfileScreen = () => (
+const ProfileScreen = ({ onLogout }) => (
   <View style={styles.placeholderScreen}>
     <Text style={styles.placeholderTitle}>👤 Profile</Text>
     <Text style={styles.placeholderText}>Your Profile</Text>
     <Text style={styles.placeholderSubtext}>Manage your account and preferences</Text>
+    <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
+      <Text style={styles.logoutButtonText}>Logout</Text>
+    </TouchableOpacity>
   </View>
 );
 
@@ -41,6 +48,47 @@ export default function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [showDemo, setShowDemo] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    // Listen to authentication state changes
+    const unsubscribe = AuthService.onAuthStateChanged((user) => {
+      console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
+      setIsAuthenticated(!!user);
+      setAuthLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+
+  const handleAuthSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            const result = await AuthService.logout();
+            if (result.success) {
+              setIsAuthenticated(false);
+              setActiveTab('home'); // Reset to home tab
+            } else {
+              Alert.alert('Error', 'Failed to logout');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const handleTabPress = (tabKey) => {
     setActiveTab(tabKey);
@@ -62,13 +110,31 @@ export default function App() {
         return <FavouritesScreen />;
       
       case 'profile':
-        return <ProfileScreen />;
+        return <ProfileScreen onLogout={handleLogout} />;
       
       default:
         return <HomeScreen onNavigate={handleNavigate} />;
     }
   };
 
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <LoadingSpinner />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show auth screen if not authenticated
+  if (!isAuthenticated) {
+    return <AuthScreen onAuthSuccess={handleAuthSuccess} />;
+  }
+
+  // Show main app if authenticated
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
@@ -91,6 +157,16 @@ const styles = StyleSheet.create({
   },
   screenContainer: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
   },
   homeContainer: {
     flex: 1,
@@ -229,5 +305,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
+    marginBottom: 32,
+  },
+  logoutButton: {
+    backgroundColor: '#f44336',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

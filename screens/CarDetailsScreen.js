@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,17 +7,36 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
+  Alert,
+  Modal,
 } from 'react-native';
 import { generateCarImageUrl } from '../services/ImageService';
 import { RecentlyViewedUtil } from '../utils/RecentlyViewedUtil';
+import BookingScreen from './BookingScreen';
 
 const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite }) => {
+  const [showBooking, setShowBooking] = useState(false);
+
   if (!car) return null;
 
   // Add car to recently viewed when component mounts
   useEffect(() => {
     RecentlyViewedUtil.addToRecentlyViewed(car);
   }, [car]);
+
+  const handleBookNow = () => {
+    setShowBooking(true);
+  };
+
+  const handleCloseBooking = () => {
+    setShowBooking(false);
+  };
+
+  const handleBookingConfirmed = useCallback(() => {
+    console.log('Booking confirmed - staying on car details');
+    // Just close the booking screen, stay on car details
+    setShowBooking(false);
+  }, []);
 
   // Generate rating based on car properties (simulated)
   const generateRating = (car) => {
@@ -207,12 +226,25 @@ const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite }) => {
               <Text style={styles.price}>${car.price}</Text>
               <Text style={styles.priceUnit}>/day</Text>
             </View>
-            <TouchableOpacity style={styles.bookButton}>
+            <TouchableOpacity style={styles.bookButton} onPress={handleBookNow}>
               <Text style={styles.bookButtonText}>Book Now</Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={showBooking}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handleCloseBooking}
+      >
+        <BookingScreen
+          car={car}
+          onBack={handleCloseBooking}
+          onBookingConfirmed={handleBookingConfirmed}
+        />
+      </Modal>
     </SafeAreaView>
   );
 };
