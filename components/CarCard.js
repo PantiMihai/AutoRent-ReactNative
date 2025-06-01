@@ -1,11 +1,59 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { generateCarImageUrl } from '../services/ImageService';
 
 const CarCard = ({ car }) => {
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
   if (!car) return null;
+
+  // Generate car image URL with fast static images
+  const imageUrl = generateCarImageUrl(car);
+
+  const handleImageLoad = () => {
+    setImageLoading(false);
+  };
+
+  const handleImageError = () => {
+    setImageLoading(false);
+    setImageError(true);
+  };
 
   return (
     <View style={styles.card}>
+      {/* Car Image Section */}
+      <View style={styles.imageContainer}>
+        {imageUrl && !imageError ? (
+          <>
+            {imageLoading && (
+              <View style={styles.imageLoading}>
+                <ActivityIndicator size="small" color="#2196F3" />
+                <Text style={styles.loadingText}>Loading image...</Text>
+              </View>
+            )}
+            <Image
+              source={{ 
+                uri: imageUrl,
+                cache: 'force-cache' // Enable image caching for better performance
+              }}
+              style={[styles.carImage, imageLoading && styles.hiddenImage]}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              resizeMode="cover" // Changed from contain to cover for better visual
+            />
+          </>
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Text style={styles.placeholderIcon}>🚗</Text>
+            <Text style={styles.placeholderText}>
+              {imageError ? 'Image not available' : 'No image'}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Car Information Section */}
       <View style={styles.header}>
         <Text style={styles.make}>{car.make?.toUpperCase() || 'N/A'}</Text>
         <Text style={styles.model}>{car.model?.toUpperCase() || 'N/A'}</Text>
@@ -85,6 +133,48 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  imageContainer: {
+    height: 200,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    marginBottom: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  carImage: {
+    width: '100%',
+    height: '100%',
+  },
+  hiddenImage: {
+    opacity: 0,
+  },
+  imageLoading: {
+    position: 'absolute',
+    zIndex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#666',
+  },
+  imagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    width: '100%',
+  },
+  placeholderIcon: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  placeholderText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
   header: {
     borderBottomWidth: 1,

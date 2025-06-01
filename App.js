@@ -11,30 +11,62 @@ import {
 } from 'react-native';
 import { APIController } from './controllers/APIController';
 import CarCard from './components/CarCard';
+import CarImageDemo from './components/CarImageDemo';
 import LoadingSpinner from './components/LoadingSpinner';
+import CatalogueScreen from './screens/CatalogueScreen';
+import BottomNavigation from './components/BottomNavigation';
+
+// Placeholder screens for other tabs
+const HomeScreen = () => (
+  <View style={styles.placeholderScreen}>
+    <Text style={styles.placeholderTitle}>🏠 Home</Text>
+    <Text style={styles.placeholderText}>Welcome to AutoRent!</Text>
+    <Text style={styles.placeholderSubtext}>Find your perfect car rental</Text>
+  </View>
+);
+
+const FavouritesScreen = () => (
+  <View style={styles.placeholderScreen}>
+    <Text style={styles.placeholderTitle}>❤️ Favourites</Text>
+    <Text style={styles.placeholderText}>Your favorite cars</Text>
+    <Text style={styles.placeholderSubtext}>Cars you've marked as favorites will appear here</Text>
+  </View>
+);
+
+const ProfileScreen = () => (
+  <View style={styles.placeholderScreen}>
+    <Text style={styles.placeholderTitle}>👤 Profile</Text>
+    <Text style={styles.placeholderText}>Your Profile</Text>
+    <Text style={styles.placeholderSubtext}>Manage your account and preferences</Text>
+  </View>
+);
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState('catalog'); // Start with catalog as shown in Figma
   const [cars, setCars] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [showDemo, setShowDemo] = useState(false);
 
+  // Keep the original demo functionality for the Home tab
   useEffect(() => {
-    loadCars();
-  }, []);
+    if (activeTab === 'home') {
+      loadCars();
+    }
+  }, [activeTab]);
 
   const loadCars = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // First test the API connection
       console.log('Testing API connection...');
       const testResult = await APIController.testAPIConnection();
       
       if (testResult) {
         console.log('API connection successful, fetching random cars...');
-        const carData = await APIController.fetchRandomCars(3); // Reduced count to avoid rate limits
+        const carData = await APIController.fetchRandomCars(3);
         console.log('Received car data:', carData);
         setCars(carData);
       } else {
@@ -70,67 +102,128 @@ export default function App() {
     }
   };
 
+  const handleTabPress = (tabKey) => {
+    setActiveTab(tabKey);
+  };
+
   const renderCarItem = ({ item }) => <CarCard car={item} />;
 
-  if (loading) {
-    return <LoadingSpinner message="Loading AutoRent cars..." />;
-  }
+  const renderScreen = () => {
+    switch (activeTab) {
+      case 'home':
+        return (
+          <View style={styles.homeContainer}>
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>AutoRent</Text>
+              <Text style={styles.headerSubtitle}>
+                {showDemo ? 'Image Customization Demo' : 'Discover Amazing Cars'}
+              </Text>
+            </View>
+
+            <View style={styles.content}>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity style={styles.refreshButton} onPress={refreshCars}>
+                  <Text style={styles.refreshButtonText}>
+                    {refreshing ? 'Loading...' : 'Load New Cars'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[styles.demoButton, showDemo && styles.demoButtonActive]} 
+                  onPress={() => setShowDemo(!showDemo)}
+                >
+                  <Text style={[styles.demoButtonText, showDemo && styles.demoButtonTextActive]}>
+                    {showDemo ? 'Show Gallery' : 'Show Demo'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {error && (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>Error: {error}</Text>
+                  <TouchableOpacity style={styles.debugButton} onPress={() => {
+                    console.log('Current state - Cars:', cars.length, 'Error:', error);
+                    Alert.alert('Debug Info', `Cars loaded: ${cars.length}\nError: ${error || 'None'}`);
+                  }}>
+                    <Text style={styles.debugButtonText}>Show Debug Info</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {loading ? (
+                <LoadingSpinner message="Loading AutoRent cars..." />
+              ) : cars.length > 0 ? (
+                showDemo ? (
+                  <FlatList
+                    data={cars.slice(0, 1)}
+                    renderItem={({ item }) => <CarImageDemo car={item} />}
+                    keyExtractor={(item, index) => `demo-${item.make}-${item.model}-${index}`}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.listContainer}
+                  />
+                ) : (
+                  <FlatList
+                    data={cars}
+                    renderItem={renderCarItem}
+                    keyExtractor={(item, index) => `${item.make}-${item.model}-${index}`}
+                    showsVerticalScrollIndicator={false}
+                    refreshing={refreshing}
+                    onRefresh={refreshCars}
+                    contentContainerStyle={styles.listContainer}
+                  />
+                )
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>
+                    {error ? 'Failed to load cars' : 'No cars found'}
+                  </Text>
+                  <TouchableOpacity style={styles.retryButton} onPress={loadCars}>
+                    <Text style={styles.retryButtonText}>Try Again</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        );
+      
+      case 'catalog':
+        return <CatalogueScreen />;
+      
+      case 'favourites':
+        return <FavouritesScreen />;
+      
+      case 'profile':
+        return <ProfileScreen />;
+      
+      default:
+        return <HomeScreen />;
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1976D2" />
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>AutoRent</Text>
-        <Text style={styles.headerSubtitle}>Discover Amazing Cars</Text>
+      {/* Main Content */}
+      <View style={styles.screenContainer}>
+        {renderScreen()}
       </View>
 
-      <View style={styles.content}>
-        <TouchableOpacity style={styles.refreshButton} onPress={refreshCars}>
-          <Text style={styles.refreshButtonText}>
-            {refreshing ? 'Loading...' : 'Load New Cars'}
-          </Text>
-        </TouchableOpacity>
-
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>Error: {error}</Text>
-            <TouchableOpacity style={styles.debugButton} onPress={() => {
-              console.log('Current state - Cars:', cars.length, 'Error:', error);
-              Alert.alert('Debug Info', `Cars loaded: ${cars.length}\nError: ${error || 'None'}`);
-            }}>
-              <Text style={styles.debugButtonText}>Show Debug Info</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {cars.length > 0 ? (
-          <FlatList
-            data={cars}
-            renderItem={renderCarItem}
-            keyExtractor={(item, index) => `${item.make}-${item.model}-${index}`}
-            showsVerticalScrollIndicator={false}
-            refreshing={refreshing}
-            onRefresh={refreshCars}
-            contentContainerStyle={styles.listContainer}
-          />
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              {error ? 'Failed to load cars' : 'No cars found'}
-            </Text>
-            <TouchableOpacity style={styles.retryButton} onPress={loadCars}>
-              <Text style={styles.retryButtonText}>Try Again</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
+      {/* Bottom Navigation */}
+      <BottomNavigation activeTab={activeTab} onTabPress={handleTabPress} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  screenContainer: {
+    flex: 1,
+  },
+  homeContainer: {
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
@@ -155,10 +248,15 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  refreshButton: {
-    backgroundColor: '#2196F3',
+  buttonRow: {
+    flexDirection: 'row',
     marginHorizontal: 16,
     marginVertical: 16,
+    gap: 8,
+  },
+  refreshButton: {
+    backgroundColor: '#2196F3',
+    flex: 1,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -167,6 +265,26 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  demoButton: {
+    backgroundColor: '#fff',
+    borderColor: '#2196F3',
+    borderWidth: 1,
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  demoButtonActive: {
+    backgroundColor: '#2196F3',
+  },
+  demoButtonText: {
+    color: '#2196F3',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  demoButtonTextActive: {
+    color: '#fff',
   },
   errorContainer: {
     backgroundColor: '#ffebee',
@@ -219,5 +337,28 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  placeholderScreen: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: 40,
+  },
+  placeholderTitle: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  placeholderText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  placeholderSubtext: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 });
