@@ -19,18 +19,10 @@ import CatalogueScreen from './screens/CatalogueScreen';
 import HomeScreen from './screens/HomeScreen';
 import AuthScreen from './screens/AuthScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import FavoritesScreen from './screens/FavoritesScreen';
 import BottomNavigation from './components/BottomNavigation';
 import AuthService from './services/AuthService';
 import DarkModeUtil from './utils/DarkModeUtil';
-
-// Placeholder screens for other tabs
-const FavouritesScreen = ({ isDarkMode }) => (
-  <View style={[styles.placeholderScreen, isDarkMode && styles.darkPlaceholderScreen]}>
-    <Text style={styles.placeholderTitle}>❤️ Favourites</Text>
-    <Text style={[styles.placeholderText, isDarkMode && styles.darkText]}>Your favorite cars</Text>
-    <Text style={[styles.placeholderSubtext, isDarkMode && styles.darkSecondaryText]}>Cars you've marked as favorites will appear here</Text>
-  </View>
-);
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home'); // Start with home screen
@@ -121,7 +113,7 @@ export default function App() {
         return <CatalogueScreen isDarkMode={isDarkMode} />;
       
       case 'favourites':
-        return <FavouritesScreen isDarkMode={isDarkMode} />;
+        return <FavoritesScreen isDarkMode={isDarkMode} />;
       
       case 'profile':
         return (
@@ -305,30 +297,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  placeholderScreen: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    padding: 40,
-  },
-  placeholderTitle: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  placeholderText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  placeholderSubtext: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 32,
-  },
   logoutButton: {
     backgroundColor: '#f44336',
     paddingHorizontal: 24,
@@ -342,9 +310,6 @@ const styles = StyleSheet.create({
   },
   darkContainer: {
     backgroundColor: '#121212',
-  },
-  darkPlaceholderScreen: {
-    backgroundColor: '#212121',
   },
   darkText: {
     color: '#fff',
