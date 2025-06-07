@@ -19,7 +19,7 @@ const STORAGE_KEYS = {
   CACHED_CARS: '@autorent_cached_cars',
 };
 
-const FavoritesScreen = ({ isDarkMode = false }) => {
+const FavoritesScreen = ({ isDarkMode = false, isActive = false }) => {
   const [favoriteVehicles, setFavoriteVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -28,9 +28,17 @@ const FavoritesScreen = ({ isDarkMode = false }) => {
     loadFavoriteVehicles();
   }, []);
 
+  // Reload favorites whenever the screen becomes active
+  useEffect(() => {
+    if (isActive) {
+      loadFavoriteVehicles();
+    }
+  }, [isActive]);
+
   const loadFavoriteVehicles = async () => {
     try {
       setLoading(true);
+      console.log('🔄 FavoritesScreen: Loading favorite vehicles...');
       
       // Load favorite IDs and cached cars in parallel
       const [favoriteIds, cachedCars] = await Promise.all([
@@ -38,14 +46,19 @@ const FavoritesScreen = ({ isDarkMode = false }) => {
         AsyncStorage.getItem(STORAGE_KEYS.CACHED_CARS)
       ]);
 
+      console.log('📁 FavoritesScreen: Favorite IDs from storage:', favoriteIds ? JSON.parse(favoriteIds) : 'None');
+      console.log('🚗 FavoritesScreen: Cached cars count:', cachedCars ? JSON.parse(cachedCars).length : 0);
+
       if (favoriteIds && cachedCars) {
         const favorites = JSON.parse(favoriteIds);
         const cars = JSON.parse(cachedCars);
         
         // Get the actual car objects for favorite IDs
         const favoriteCars = cars.filter(car => favorites.includes(car.id));
+        console.log('❤️ FavoritesScreen: Found favorite cars:', favoriteCars.length);
         setFavoriteVehicles(favoriteCars);
       } else {
+        console.log('❌ FavoritesScreen: No favorites or cached cars found');
         setFavoriteVehicles([]);
       }
     } catch (error) {

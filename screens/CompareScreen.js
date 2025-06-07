@@ -9,12 +9,12 @@ import {
 } from 'react-native';
 import { generateCarImageUrl } from '../services/ImageService';
 
-const CompareScreen = ({ cars, onClose, onRemoveCar }) => {
+const CompareScreen = ({ cars, onClose, onRemoveCar, isDarkMode = false }) => {
   if (!cars || cars.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyTitle}>No Cars to Compare</Text>
-        <Text style={styles.emptyText}>
+      <View style={[styles.emptyContainer, isDarkMode && styles.darkContainer]}>
+        <Text style={[styles.emptyTitle, isDarkMode && styles.darkText]}>No Cars to Compare</Text>
+        <Text style={[styles.emptyText, isDarkMode && styles.darkSecondaryText]}>
           Select up to 2 cars from the catalog to compare their features.
         </Text>
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -27,7 +27,7 @@ const CompareScreen = ({ cars, onClose, onRemoveCar }) => {
   const renderCarColumn = (car, index) => (
     <View key={car.id} style={styles.carColumn}>
       {/* Car Image */}
-      <View style={styles.carImageContainer}>
+      <View style={[styles.carImageContainer, isDarkMode && styles.darkCarImageContainer]}>
         <Image
           source={{ 
             uri: generateCarImageUrl(car),
@@ -45,71 +45,71 @@ const CompareScreen = ({ cars, onClose, onRemoveCar }) => {
       </View>
 
       {/* Car Details */}
-      <View style={styles.carDetails}>
-        <Text style={styles.carName}>{car.make} {car.model}</Text>
+      <View style={[styles.carDetails, isDarkMode && styles.darkCarDetails]}>
+        <Text style={[styles.carName, isDarkMode && styles.darkText]}>{car.make} {car.model}</Text>
         <Text style={styles.carPrice}>${car.price}/day</Text>
         
-        <View style={styles.specItem}>
-          <Text style={styles.specLabel}>Year</Text>
-          <Text style={styles.specValue}>{car.year || 'N/A'}</Text>
+        <View style={[styles.specItem, isDarkMode && styles.darkSpecItem]}>
+          <Text style={[styles.specLabel, isDarkMode && styles.darkSecondaryText]}>Year</Text>
+          <Text style={[styles.specValue, isDarkMode && styles.darkText]}>{car.year || 'N/A'}</Text>
         </View>
         
-        <View style={styles.specItem}>
-          <Text style={styles.specLabel}>Type</Text>
-          <Text style={styles.specValue}>{car.type || 'N/A'}</Text>
+        <View style={[styles.specItem, isDarkMode && styles.darkSpecItem]}>
+          <Text style={[styles.specLabel, isDarkMode && styles.darkSecondaryText]}>Type</Text>
+          <Text style={[styles.specValue, isDarkMode && styles.darkText]}>{car.type || 'N/A'}</Text>
         </View>
         
-        <View style={styles.specItem}>
-          <Text style={styles.specLabel}>Class</Text>
-          <Text style={styles.specValue}>{car.class || 'N/A'}</Text>
+        <View style={[styles.specItem, isDarkMode && styles.darkSpecItem]}>
+          <Text style={[styles.specLabel, isDarkMode && styles.darkSecondaryText]}>Class</Text>
+          <Text style={[styles.specValue, isDarkMode && styles.darkText]}>{car.class || 'N/A'}</Text>
         </View>
         
-        <View style={styles.specItem}>
-          <Text style={styles.specLabel}>Fuel Type</Text>
-          <Text style={styles.specValue}>{car.fuel_type || 'Gasoline'}</Text>
+        <View style={[styles.specItem, isDarkMode && styles.darkSpecItem]}>
+          <Text style={[styles.specLabel, isDarkMode && styles.darkSecondaryText]}>Fuel Type</Text>
+          <Text style={[styles.specValue, isDarkMode && styles.darkText]}>{car.fuel_type || 'Gasoline'}</Text>
         </View>
         
-        <View style={styles.specItem}>
-          <Text style={styles.specLabel}>Drive</Text>
-          <Text style={styles.specValue}>{car.drive?.toUpperCase() || 'N/A'}</Text>
+        <View style={[styles.specItem, isDarkMode && styles.darkSpecItem]}>
+          <Text style={[styles.specLabel, isDarkMode && styles.darkSecondaryText]}>Drive</Text>
+          <Text style={[styles.specValue, isDarkMode && styles.darkText]}>{car.drive?.toUpperCase() || 'N/A'}</Text>
         </View>
         
-        <View style={styles.specItem}>
-          <Text style={styles.specLabel}>Transmission</Text>
-          <Text style={styles.specValue}>
+        <View style={[styles.specItem, isDarkMode && styles.darkSpecItem]}>
+          <Text style={[styles.specLabel, isDarkMode && styles.darkSecondaryText]}>Transmission</Text>
+          <Text style={[styles.specValue, isDarkMode && styles.darkText]}>
             {car.transmission === 'a' ? 'Automatic' : 
              car.transmission === 'm' ? 'Manual' : 'N/A'}
           </Text>
         </View>
         
-        <View style={styles.specItem}>
-          <Text style={styles.specLabel}>Cylinders</Text>
-          <Text style={styles.specValue}>{car.cylinders || 'N/A'}</Text>
+        <View style={[styles.specItem, isDarkMode && styles.darkSpecItem]}>
+          <Text style={[styles.specLabel, isDarkMode && styles.darkSecondaryText]}>Cylinders</Text>
+          <Text style={[styles.specValue, isDarkMode && styles.darkText]}>{car.cylinders || 'N/A'}</Text>
         </View>
         
         {car.displacement && (
-          <View style={styles.specItem}>
-            <Text style={styles.specLabel}>Displacement</Text>
-            <Text style={styles.specValue}>{car.displacement}L</Text>
+          <View style={[styles.specItem, isDarkMode && styles.darkSpecItem]}>
+            <Text style={[styles.specLabel, isDarkMode && styles.darkSecondaryText]}>Displacement</Text>
+            <Text style={[styles.specValue, isDarkMode && styles.darkText]}>{car.displacement}L</Text>
           </View>
         )}
         
-        <View style={styles.specItem}>
-          <Text style={styles.specLabel}>Fuel Type</Text>
-          <Text style={styles.specValue}>{car.fuel_type || 'Gasoline'}</Text>
+        <View style={[styles.specItem, isDarkMode && styles.darkSpecItem]}>
+          <Text style={[styles.specLabel, isDarkMode && styles.darkSecondaryText]}>Fuel Type</Text>
+          <Text style={[styles.specValue, isDarkMode && styles.darkText]}>{car.fuel_type || 'Gasoline'}</Text>
         </View>
       </View>
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, isDarkMode && styles.darkHeader]}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Compare Cars</Text>
+        <Text style={[styles.headerTitle, isDarkMode && styles.darkText]}>Compare Cars</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -121,9 +121,9 @@ const CompareScreen = ({ cars, onClose, onRemoveCar }) => {
           {/* Add placeholder for second car if only one selected */}
           {cars.length === 1 && (
             <View style={styles.placeholderColumn}>
-              <View style={styles.placeholderBox}>
-                <Text style={styles.placeholderText}>+</Text>
-                <Text style={styles.placeholderLabel}>Add another car to compare</Text>
+              <View style={[styles.placeholderBox, isDarkMode && styles.darkPlaceholderBox]}>
+                <Text style={[styles.placeholderText, isDarkMode && styles.darkSecondaryText]}>+</Text>
+                <Text style={[styles.placeholderLabel, isDarkMode && styles.darkSecondaryText]}>Add another car to compare</Text>
               </View>
             </View>
           )}
@@ -293,6 +293,33 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Dark mode styles
+  darkContainer: {
+    backgroundColor: '#121212',
+  },
+  darkHeader: {
+    backgroundColor: '#1e1e1e',
+    borderBottomColor: '#333',
+  },
+  darkText: {
+    color: '#fff',
+  },
+  darkSecondaryText: {
+    color: '#aaa',
+  },
+  darkCarDetails: {
+    backgroundColor: '#2a2a2a',
+  },
+  darkSpecItem: {
+    borderBottomColor: '#333',
+  },
+  darkPlaceholderBox: {
+    backgroundColor: '#2a2a2a',
+    borderColor: '#333',
+  },
+  darkCarImageContainer: {
+    backgroundColor: '#2a2a2a',
   },
 });
 

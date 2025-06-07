@@ -76,19 +76,66 @@ const generateCarPrice = (car) => {
 // Map car classes to our filter types
 const getCarType = (car) => {
   const carClass = car.class?.toLowerCase() || '';
+  const carMake = car.make?.toLowerCase() || '';
+  const carModel = car.model?.toLowerCase() || '';
   
-  if (carClass.includes('suv') || carClass.includes('sport utility')) {
+  // SUV category - check class, make, and model
+  if (carClass.includes('suv') || 
+      carClass.includes('sport utility') ||
+      carClass.includes('truck') ||
+      carModel.includes('suv') ||
+      ['jeep', 'land rover', 'range rover'].some(brand => carMake.includes(brand))) {
     return 'SUV';
-  } else if (carClass.includes('sport') || carClass.includes('coupe') || carClass.includes('convertible')) {
-    return 'Sport';
-  } else if (carClass.includes('sedan')) {
-    return 'Sedan';
-  } else {
-    return 'Sedan'; // Default fallback
   }
+  
+  // Sport category - expand criteria significantly
+  if (carClass.includes('sport') || 
+      carClass.includes('coupe') || 
+      carClass.includes('convertible') ||
+      carClass.includes('roadster') ||
+      carClass.includes('supercar') ||
+      carClass.includes('muscle') ||
+      carClass.includes('performance') ||
+      carModel.includes('sport') ||
+      carModel.includes('gt') ||
+      carModel.includes('gti') ||
+      carModel.includes('turbo') ||
+      carModel.includes('rs') ||
+      carModel.includes('m3') ||
+      carModel.includes('m5') ||
+      carModel.includes('amg') ||
+      carModel.includes('type r') ||
+      carModel.includes('sti') ||
+      carModel.includes('wrx') ||
+      ['ferrari', 'lamborghini', 'maserati', 'aston martin', 'mclaren', 'bugatti', 'koenigsegg', 'pagani'].some(brand => carMake.includes(brand)) ||
+      ['corvette', 'camaro', 'challenger', 'mustang', 'viper', 'gt-r', 'supra', 'rx-7', 'nsx', '911', 'boxster', 'cayman'].some(model => carModel.includes(model))) {
+    return 'Sport';
+  }
+  
+  // Sedan category - explicit sedans and family cars
+  if (carClass.includes('sedan') || 
+      carClass.includes('saloon') ||
+      carClass.includes('compact') ||
+      carClass.includes('midsize') ||
+      carClass.includes('full-size') ||
+      carClass.includes('luxury') ||
+      carClass.includes('executive') ||
+      carModel.includes('sedan')) {
+    return 'Sedan';
+  }
+  
+  // Default fallback - distribute more evenly
+  // Use a simple hash to distribute unknown cars across categories
+  const hash = (carMake + carModel).split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  
+  const categories = ['Sedan', 'Sport', 'SUV'];
+  return categories[Math.abs(hash) % categories.length];
 };
 
-const CatalogueScreen = () => {
+const CatalogueScreen = ({ isDarkMode = false }) => {
   const [cars, setCars] = useState([]);
   const [filteredCars, setFilteredCars] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -113,17 +160,37 @@ const CatalogueScreen = () => {
   const loadInitialData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 CatalogueScreen: Loading initial data...');
       
       // Load cached data from AsyncStorage
       await Promise.all([
         loadFavorites(),
         loadCompareList(),
-        loadCachedCars(),
       ]);
       
-      // Fetch fresh car data
-      await fetchCars();
-      
+      // Check if we have cached cars first
+      const cachedCars = await AsyncStorage.getItem(STORAGE_KEYS.CACHED_CARS);
+      if (cachedCars) {
+        // Use cached cars if available, but re-categorize them in case logic changed
+        const parsedCars = JSON.parse(cachedCars);
+        const recategorizedCars = parsedCars.map(car => ({
+          ...car,
+          type: getCarType(car), // Re-apply categorization logic
+        }));
+        console.log('✅ CatalogueScreen: Using cached cars:', recategorizedCars.length);
+        console.log('🏷️ Car types distribution:', 
+          recategorizedCars.reduce((acc, car) => {
+            acc[car.type] = (acc[car.type] || 0) + 1;
+            return acc;
+          }, {})
+        );
+        setCars(recategorizedCars);
+      } else {
+        // Only fetch fresh car data if no cache exists
+        console.log('🌐 CatalogueScreen: No cache found, fetching fresh cars...');
+        await fetchCars();
+      }
+    
     } catch (error) {
       console.error('Error loading initial data:', error);
       Alert.alert('Error', 'Failed to load data. Please try again.');
@@ -135,6 +202,7 @@ const CatalogueScreen = () => {
   const fetchCars = async () => {
     try {
       setRefreshing(true);
+      console.log('🌐 CatalogueScreen: Fetching fresh cars from API...');
       const carData = await APIController.fetchRandomCars(12); // Get more cars for variety
       
       // Add pricing and IDs to cars
@@ -149,23 +217,13 @@ const CatalogueScreen = () => {
       
       // Cache cars to AsyncStorage
       await AsyncStorage.setItem(STORAGE_KEYS.CACHED_CARS, JSON.stringify(carsWithPricing));
+      console.log('💾 CatalogueScreen: Cached', carsWithPricing.length, 'cars to storage');
       
     } catch (error) {
       console.error('Error fetching cars:', error);
       Alert.alert('Error', 'Failed to fetch car data. Please try again.');
     } finally {
       setRefreshing(false);
-    }
-  };
-
-  const loadCachedCars = async () => {
-    try {
-      const cachedCars = await AsyncStorage.getItem(STORAGE_KEYS.CACHED_CARS);
-      if (cachedCars) {
-        setCars(JSON.parse(cachedCars));
-      }
-    } catch (error) {
-      console.error('Error loading cached cars:', error);
     }
   };
 
@@ -193,21 +251,37 @@ const CatalogueScreen = () => {
 
   const filterCars = () => {
     let filtered = [...cars];
+    
+    console.log(`🔍 Filtering cars: ${cars.length} total cars`);
+    console.log(`🔍 Search query: "${searchQuery}"`);
+    console.log(`🔍 Selected filter: ${selectedFilter}`);
 
     // Apply search filter
     if (searchQuery.trim()) {
+      const beforeSearch = filtered.length;
       filtered = filtered.filter(car =>
         car.make?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         car.model?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         car.type?.toLowerCase().includes(searchQuery.toLowerCase())
       );
+      console.log(`🔍 After search filter: ${beforeSearch} → ${filtered.length} cars`);
     }
 
     // Apply type filter
     if (selectedFilter !== 'ALL_TYPES') {
+      const beforeTypeFilter = filtered.length;
       filtered = filtered.filter(car => car.type === selectedFilter);
+      console.log(`🔍 After type filter (${selectedFilter}): ${beforeTypeFilter} → ${filtered.length} cars`);
+      
+      // Debug: show some examples of what was filtered
+      if (filtered.length === 0) {
+        console.log('⚠️ No cars match the filter. Available car types:', 
+          cars.map(car => `${car.make} ${car.model}: ${car.type}`).slice(0, 5)
+        );
+      }
     }
 
+    console.log(`✅ Final filtered result: ${filtered.length} cars`);
     setFilteredCars(filtered);
   };
 
@@ -312,28 +386,29 @@ const CatalogueScreen = () => {
       onToggleFavorite={() => toggleFavorite(item.id)}
       onToggleCompare={() => toggleCompare(item.id)}
       onPress={() => handleCarPress(item)}
+      isDarkMode={isDarkMode}
     />
   );
 
   if (loading) {
-    return <LoadingSpinner message="Loading catalogue..." />;
+    return <LoadingSpinner message="Loading catalogue..." isDarkMode={isDarkMode} />;
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Catalogue</Text>
+      <View style={[styles.header, isDarkMode && styles.darkHeader]}>
+        <Text style={[styles.headerTitle, isDarkMode && styles.darkText]}>Catalogue</Text>
       </View>
 
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
+      <View style={[styles.searchContainer, isDarkMode && styles.darkSearchContainer]}>
+        <View style={[styles.searchInputContainer, isDarkMode && styles.darkSearchInputContainer]}>
           <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, isDarkMode && styles.darkSearchInput]}
             placeholder="Search Cars..."
-            placeholderTextColor="#999"
+            placeholderTextColor={isDarkMode ? "#aaa" : "#999"}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -341,7 +416,7 @@ const CatalogueScreen = () => {
       </View>
 
       {/* Filter Tabs */}
-      <View style={styles.filterContainer}>
+      <View style={[styles.filterContainer, isDarkMode && styles.darkFilterContainer]}>
         <View style={styles.filterRow}>
           <TouchableOpacity 
             style={styles.filterIconButton}
@@ -355,31 +430,49 @@ const CatalogueScreen = () => {
             contentContainerStyle={styles.filterContent}
             style={styles.filterScrollView}
           >
-            {Object.entries(CAR_TYPES).map(([key, label]) => (
-              <TouchableOpacity
-                key={key}
-                style={[
-                  styles.filterTab,
-                  selectedFilter === key && styles.filterTabActive
-                ]}
-                onPress={() => setSelectedFilter(key)}
-                activeOpacity={0.8}
-              >
-                <Text style={[
-                  styles.filterTabText,
-                  selectedFilter === key && styles.filterTabTextActive
-                ]}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {Object.entries(CAR_TYPES).map(([key, label]) => {
+              // Count cars for this filter
+              const count = key === 'ALL_TYPES' 
+                ? cars.length 
+                : cars.filter(car => car.type === key).length;
+              
+              return (
+                <TouchableOpacity
+                  key={key}
+                  style={[
+                    styles.filterTab,
+                    selectedFilter === key && styles.filterTabActive,
+                    isDarkMode && styles.darkFilterTab,
+                    selectedFilter === key && isDarkMode && styles.darkFilterTabActive
+                  ]}
+                  onPress={() => {
+                    console.log(`🔄 Filter changed to: ${key} (${label}) - ${count} cars`);
+                    setSelectedFilter(key);
+                    // Clear search when changing filters for better UX
+                    if (searchQuery.trim()) {
+                      setSearchQuery('');
+                    }
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[
+                    styles.filterTabText,
+                    selectedFilter === key && styles.filterTabTextActive,
+                    isDarkMode && styles.darkFilterTabText,
+                    selectedFilter === key && isDarkMode && styles.darkFilterTabTextActive
+                  ]}>
+                    {label} ({count})
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
         
         {/* Expanded Filters */}
         {filtersExpanded && (
-          <View style={styles.expandedFilters}>
-            <Text style={styles.expandedFiltersTitle}>Additional Filters</Text>
+          <View style={[styles.expandedFilters, isDarkMode && styles.darkExpandedFilters]}>
+            <Text style={[styles.expandedFiltersTitle, isDarkMode && styles.darkText]}>Additional Filters</Text>
             <View style={styles.expandedFilterRow}>
               <TouchableOpacity style={styles.expandedFilterButton}>
                 <Text style={styles.expandedFilterText}>Price Range</Text>
@@ -401,10 +494,10 @@ const CatalogueScreen = () => {
       </View>
 
       {/* Compare Section */}
-      <View style={styles.compareSection}>
+      <View style={[styles.compareSection, isDarkMode && styles.darkCompareSection]}>
         <View style={styles.compareHeader}>
-          <Text style={styles.compareTitle}>Compare Cars</Text>
-          <Text style={styles.compareSubtitle}>
+          <Text style={[styles.compareTitle, isDarkMode && styles.darkText]}>Compare Cars</Text>
+          <Text style={[styles.compareSubtitle, isDarkMode && styles.darkSecondaryText]}>
             Select up to 2 cars ({compareList.length}/2)
           </Text>
         </View>
@@ -438,7 +531,7 @@ const CatalogueScreen = () => {
         onRefresh={fetchCars}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No cars found</Text>
+            <Text style={[styles.emptyText, isDarkMode && styles.darkSecondaryText]}>No cars found</Text>
             <TouchableOpacity style={styles.retryButton} onPress={fetchCars}>
               <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
@@ -456,6 +549,7 @@ const CatalogueScreen = () => {
           cars={getComparedCars()}
           onClose={handleCloseCompare}
           onRemoveCar={handleRemoveFromCompare}
+          isDarkMode={isDarkMode}
         />
       </Modal>
       
@@ -470,6 +564,7 @@ const CatalogueScreen = () => {
           onBack={handleCloseCarDetails}
           onToggleFavorite={handleCarDetailsFavorite}
           isFavorite={selectedCar ? favorites.includes(selectedCar.id) : false}
+          isDarkMode={isDarkMode}
         />
       </Modal>
     </View>
@@ -681,6 +776,53 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#666',
+  },
+  // Dark mode styles
+  darkContainer: {
+    backgroundColor: '#121212',
+  },
+  darkHeader: {
+    backgroundColor: '#1e1e1e',
+    borderBottomColor: '#333',
+  },
+  darkText: {
+    color: '#fff',
+  },
+  darkSecondaryText: {
+    color: '#aaa',
+  },
+  darkSearchContainer: {
+    backgroundColor: '#1e1e1e',
+  },
+  darkSearchInputContainer: {
+    backgroundColor: '#2a2a2a',
+  },
+  darkSearchInput: {
+    color: '#fff',
+  },
+  darkFilterContainer: {
+    backgroundColor: '#1e1e1e',
+    borderBottomColor: '#333',
+  },
+  darkCompareSection: {
+    backgroundColor: '#1e1e1e',
+    borderBottomColor: '#333',
+  },
+  darkExpandedFilters: {
+    backgroundColor: '#1e1e1e',
+    borderTopColor: '#333',
+  },
+  darkFilterTab: {
+    backgroundColor: '#2a2a2a',
+  },
+  darkFilterTabActive: {
+    backgroundColor: '#2196F3',
+  },
+  darkFilterTabText: {
+    color: '#aaa',
+  },
+  darkFilterTabTextActive: {
+    color: '#fff',
   },
 });
 

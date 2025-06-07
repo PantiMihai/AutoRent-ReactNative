@@ -17,11 +17,11 @@ import BookingScreen from './BookingScreen';
 const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite, isDarkMode = false }) => {
   const [showBooking, setShowBooking] = useState(false);
 
-  if (!car) return null;
-
   // Add car to recently viewed when component mounts
   useEffect(() => {
-    RecentlyViewedUtil.addToRecentlyViewed(car);
+    if (car) {
+      RecentlyViewedUtil.addToRecentlyViewed(car);
+    }
   }, [car]);
 
   const handleBookNow = () => {
@@ -37,6 +37,9 @@ const CarDetailsScreen = ({ car, onBack, onToggleFavorite, isFavorite, isDarkMod
     // Just close the booking screen, stay on car details
     setShowBooking(false);
   }, []);
+
+  // Early return after all hooks have been called
+  if (!car) return null;
 
   // Generate rating based on car properties (simulated)
   const generateRating = (car) => {

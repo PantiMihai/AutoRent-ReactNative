@@ -113,7 +113,13 @@ export default function App() {
         return <CatalogueScreen isDarkMode={isDarkMode} />;
       
       case 'favourites':
-        return <FavoritesScreen isDarkMode={isDarkMode} />;
+        return (
+          <FavoritesScreen 
+            key={`favorites-${activeTab}`}
+            isDarkMode={isDarkMode} 
+            isActive={activeTab === 'favourites'} 
+          />
+        );
       
       case 'profile':
         return (
