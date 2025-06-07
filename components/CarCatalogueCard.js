@@ -16,7 +16,7 @@ const CarCatalogueCard = ({
 
   if (!car) return null;
 
-  // Generate car image with fast static images
+
   const imageUrl = generateCarImageUrl(car);
 
   const handleImageLoad = () => {
@@ -46,12 +46,12 @@ const CarCatalogueCard = ({
             <Image
               source={{ 
                 uri: imageUrl,
-                cache: 'force-cache' // Enable image caching for better performance
+                cache: 'force-cache' 
               }}
               style={[styles.carImage, imageLoading && styles.hiddenImage]}
               onLoad={handleImageLoad}
               onError={handleImageError}
-              resizeMode="cover" // Changed from contain to cover for better visual appeal
+              resizeMode="cover" 
             />
           </>
         ) : (

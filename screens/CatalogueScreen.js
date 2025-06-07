@@ -175,10 +175,10 @@ const CatalogueScreen = ({ isDarkMode = false }) => {
         const parsedCars = JSON.parse(cachedCars);
         const recategorizedCars = parsedCars.map(car => ({
           ...car,
-          type: getCarType(car), // Re-apply categorization logic
+          type: getCarType(car), 
         }));
-        console.log('✅ CatalogueScreen: Using cached cars:', recategorizedCars.length);
-        console.log('🏷️ Car types distribution:', 
+        console.log(' CatalogueScreen: Using cached cars:', recategorizedCars.length);
+        console.log(' Car types distribution:', 
           recategorizedCars.reduce((acc, car) => {
             acc[car.type] = (acc[car.type] || 0) + 1;
             return acc;
@@ -187,7 +187,7 @@ const CatalogueScreen = ({ isDarkMode = false }) => {
         setCars(recategorizedCars);
       } else {
         // Only fetch fresh car data if no cache exists
-        console.log('🌐 CatalogueScreen: No cache found, fetching fresh cars...');
+        console.log(' CatalogueScreen: No cache found, fetching fresh cars...');
         await fetchCars();
       }
     
@@ -202,7 +202,7 @@ const CatalogueScreen = ({ isDarkMode = false }) => {
   const fetchCars = async () => {
     try {
       setRefreshing(true);
-      console.log('🌐 CatalogueScreen: Fetching fresh cars from API...');
+      console.log(' CatalogueScreen: Fetching fresh cars from API...');
       const carData = await APIController.fetchRandomCars(12); // Get more cars for variety
       
       // Add pricing and IDs to cars
@@ -281,7 +281,7 @@ const CatalogueScreen = ({ isDarkMode = false }) => {
       }
     }
 
-    console.log(`✅ Final filtered result: ${filtered.length} cars`);
+    console.log(`Final filtered result: ${filtered.length} cars`);
     setFilteredCars(filtered);
   };
 

@@ -1,0 +1,180 @@
+Documentatie AutoRent - Aplicatie React Native
+
+Aplicatia AutoRent foloseste o arhitectura modulara cu gestionarea centralizata a state-ului, cache local pentru performanta optima si integrare completa Firebase pentru autentificare cu persistenta sesiunii. 
+
+1. Prezentare Generala - Ecrane si Componente
+
+Screen-uri principale
+
+HomeScreen.js
+- Scop: Ecranul principal cu cautare vehicule si afisarea masinilor recente
+- Navigare: Punct de pornire → Catalogul, Detalii masina
+- Elemente UI: Bara de cautare cu locatie/date, lista vehiculelor featured, sectiunea "Recently Viewed"
+- Functionalitati: Cautare vehicule, navigare catre catalog, vizualizarea detaliilor masinilor
+
+CatalogueScreen.js
+- Scop: Afisarea completa a catalogului de vehicule cu filtrare si cautare
+- Navigare: Acces din HomeScreen → Detalii masina, CompareScreen
+- Elemente UI: Bara de cautare, filtre tip masina (SUV, Sport, Sedan), lista de masini cu carduri
+- Functionalitati: Filtrare dupa tip, sistem de favorite, comparare masini, cache vehicule
+
+FavoritesScreen.js 
+- Scop: Lista vehiculelor favorite
+- Functionalitati: Gestiunea favorite cu AsyncStorage sync
+
+ProfileScreen.js 
+- Scop: Profilul utilizatorului cu istoric rezervari si setari
+- Elemente UI: Informatii utilizator, rezervari active, istoric calatorii, favorite, dark mode toggle
+
+
+Screen-uri de Autentificare
+
+AuthScreen.js 
+- Scop: Router pentru login/register
+- Navigare: Prima interfata → LoginScreen/RegisterScreen
+
+LoginScreen.js  / RegisterScreen.js 
+- Scop: Autentificare utilizatori prin Firebase
+- Elemente UI: Formulare email/parola, validare, butoane social (placeholder)
+
+Screen-uri Secundare
+
+CarDetailsScreen.js
+- Scop: Afisarea detaliata a unei masini cu specificatii complete
+- Navigare: Acces din orice lista de masini → BookingScreen
+- Elemente UI: Imagine masina, specificatii tehnice, rating, buton favorite, buton "Book Now"
+- Functionalitati: Vizualizare specificatii, adaugare la favorite, initiere rezervare
+
+BookingScreen.js
+- Scop: Gestionarea procesului de rezervare cu detalii complete
+- Navigare: Acces din CarDetailsScreen → Confirmare rezervare
+- Elemente UI: Formulare date personale, selector perioada, calculator pret, metoda plata
+- Functionalitati: Rezervare completa, salvarea in AsyncStorage
+
+BookingDetailsScreen.js
+- Scop: Afisarea detaliilor unei rezervari existente
+- Navigare: Acces din ProfileScreen istoricul rezervarilor
+- Elemente UI: Status rezervare, detalii masina, perioada inchiriere, locatie, pret total, metoda plata
+- Functionalitati: Vizualizare rezervare, butoane modify/extend pentru rezervari active
+
+CompareScreen.js 
+- Scop: Compararea specificatiilor intre vehicule
+
+2. Integrarea API (API-Ninjas)
+
+Controller API - APIController.js (1-74)
+
+const API_BASE_URL = 'https://api.api-ninjas.com/v1';
+const API_KEY = 'UqIy6EAWZrrgtcoav9+hSA==dfbnGvdGSiaf3oqG';
+
+Implementarea Controller-ului:
+- Metoda principala: fetchCarData(params) - Apeluri HTTP cu parametri dinamici
+- Parametri disponibili: make, model, fuel_type, drive, cylinders, transmission, year
+- Gestionarea erorilor: Try-catch cu logging detaliat pentru debugging
+
+Functii principale:
+- fetchRandomCars(count) - Preia vehicule aleatorii din modele populare
+- searchCars(searchParams) - Cautare cu filtre specifice
+- testAPIConnection() - Verifica conectivitatea API
+
+Sistema de Cache Vehicule
+
+Implementare Cache - CatalogueScreen.js (158-228):
+- Cheie Storage: @autorent_cached_cars
+- Strategie: Prioritizeaza cache-ul local, fetch doar daca nu exista
+- Sincronizare: Cache se actualizeaza la pull-to-refresh manual
+- Date Cached: Vehicule complete cu pret generat si categorizare
+
+// Verifica cache inainte de API call
+const cachedCars = await AsyncStorage.getItem(STORAGE_KEYS.CACHED_CARS);
+if (cachedCars) {
+  // Foloseste vehiculele cached
+} else {
+  // Preia de la API si salveaza in cache
+}
+
+3. Autentificarea Firebase
+
+Configurarea Firebase - firebaseConfig.js
+
+Initializarea:
+- Persistenta: Configurata cu AsyncStorage pentru mentinerea sesiunii
+- Gestionarea instantelor: Verifica daca Firebase este deja initializat
+- Error handling: Fallback la auth basic daca initializarea cu persistenta esueaza
+
+Serviciul de Autentificare - AuthService.js
+
+Metode disponibile:
+- register(email, password, displayName) - Inregistrare cu updateProfile pentru nume
+- login(email, password) - Autentificare cu email/parola
+- logout() - Delogare cu curatare sesiune
+- resetPassword(email) - Resetare parola prin email
+- onAuthStateChanged(callback) - Listener pentru modificari stare auth
+
+Flow-ul de Autentificare:
+1. App.js (39-49): Verifica starea auth la startup
+2. Persistenta sesiunii: Automata prin AsyncStorage
+3. State Management: isAuthenticated bool in App.js
+4. Protectia rutelor: AuthScreen afisat daca user neautentificat
+
+Gestionarea Starii Utilizator - App.js 
+
+// Listener pentru modificari auth
+const unsubscribe = AuthService.onAuthStateChanged((user) => {
+  setIsAuthenticated(!!user);
+  setAuthLoading(false);
+});
+
+4. Managementul Starii si Navigarea
+
+Navigarea Tab-Based - App.js (87-125)
+
+Structura navigarii:
+- State centralizat: activeTab in App.js
+- Ecrane principale: home, catalog, favourites, profile
+- Functia renderScreen(): Switch case pentru randare conditionala
+- Bottom Navigation: Component separat cu callback-uri
+
+Fluxul de navigare:
+1. Home → Catalog (search/view all)
+2. Catalog → Car Details (tap pe masina)
+3. Car Details → Booking (buton Book Now)
+4. Orice ecran → Profile (tab navigation)
+
+Managementul State-ului Local
+
+AsyncStorage Keys folosite:
+- @autorent_favorites - Lista ID-urilor favorite
+- @autorent_cached_cars - Vehiculele cached
+- @autorent_compare_list - Masini in comparare
+- bookings - Istoric rezervari
+- recentlyViewedCars - Istoric vizualizari
+
+Utilitati State Management:
+- RecentlyViewedUtil.js: Gestioneaza istoricul vizualizarilor (max 5 iteme)
+- DarkModeUtil.js: Persistenta preferintei tema
+- Sincronizarea Cross-Screen: Callback-uri si state sharing intre componente
+
+Exemple de Navigare
+
+Navigare cu State Sharing:
+// HomeScreen -> CatalogueScreen
+const handleViewAll = () => {
+  onNavigate('catalog'); // Callback spre App.js
+};
+
+// CarDetailsScreen -> BookingScreen
+const handleBookNow = () => {
+  setShowBooking(true); // Modal overlay
+};
+
+Persistenta Datelor intre Navigari:
+- Favorite sync: Updates in real-time intre Catalog si Favorites
+- Recently Viewed: Actualizare automata la revenirea in Home
+- Cache vehicule: Sincronizare intre toate ecranele cu liste
+
+5. Componente Reutilizabile
+
+BottomNavigation.js (95 linii) - Navigarea principala
+CarCard.js / CarCatalogueCard.js - Carduri vehicule cu functionalitati
+LoadingSpinner.js (28 linii) - Indicator loading standardizat

@@ -92,7 +92,6 @@ const HomeScreen = ({ onNavigate, isDarkMode = false }) => {
   };
 
   const handleDatePress = (type) => {
-    // For now, just show an alert. In a real app, you'd open a date picker
     Alert.alert('Date Picker', `Select ${type.toLowerCase()} date`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Today', onPress: () => {
